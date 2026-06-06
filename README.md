@@ -1,164 +1,220 @@
-[Email Verifier](https://apify.com/amr-mando/email-verifier?fpr=data)
+[Email Verifier](https://apify.com/pro100chok/email-verifier?fpr=data)
 
-# Email Verifier 📧
+# Email Verifier — Bulk Email Validation, Deliverability & Risk Score
 
-Verify email addresses in bulk using advanced email verification. Get deliverability status, MX records, disposable detection, and more.
+> Validate, clean, and score email addresses in bulk. Catch bounces before you send. Detect disposable, role-based, catch-all, and spam-trap addresses. Output is ready for CRMs, ESPs, and spreadsheet imports.
 
-🎯 Free plan: Maximum 30 results per run 💡 We don't get paid for free users usage, that's why we have to sadly limit it.
+## What this Actor does
 
-**Upgrade to a paid Apify plan for unlimited email verification!**
+Run an array of email addresses through the actor and get back a clean, enriched verification record for each. Typical use-cases:
 
-## Features
+- **Clean your mailing list** before an ESP campaign — drop the dead addresses so your bounce rate stays low and your sender reputation stays high.
+- **Validate leads** from a form / chat / landing page — flag fakes, typos, disposable addresses, and spam traps before they hit your CRM.
+- **Score prospects** for cold-email outreach — separate high-confidence deliverable mailboxes from catch-all / role / unknown ones.
+- **Cross-check** bought or scraped lists — detect gibberish, plus-tag aliases, and free-mail vs. business addresses.
 
-- **Single or Bulk Verification**: Verify one email or thousands at once
-- **CSV File Support**: Upload CSV files with automatic email column detection
-- **Full CSV Preservation**: When uploading a CSV, ALL original columns are preserved in the output (name, company, phone, etc.)
-- **Comprehensive Results**: Get detailed verification data including:
+No SMTP setup on your side, no API keys, no captcha, no proxies — just paste the list and run.
 
-- Deliverability score (0-100)
-- Result status (deliverable, risky, undeliverable, unknown)
-- MX record validation
-- Disposable email detection
-- Free email provider detection
-- Catch-all detection
-- And more...
+---
 
-## Input
-
-### Direct Email Input
-
-Provide emails as a list in the `emails` field. You can enter one email per line.
-
-### CSV File Upload
-
-Upload a CSV file containing email addresses. The Actor will:
-
-1. **Auto-detect the email column** (looks for columns named email, Email, e-mail, etc.)
-2. **Preserve ALL original columns** in the output
-3. **Merge verification results** with your original data
-
-Supported auto-detect column names:
-
-- `email`, `Email`, `EMAIL`
-- `e-mail`, `E-mail`
-- `emailAddress`, `email_address`
-- `mail`, `Mail`
-- And similar variations
-
-You can also specify the exact column name using the `emailColumn` field.
-
-## Output
-
-### For Direct Email Input
-
-Each verified email returns the exact API response:
-
-```
-{
-  "email": "example@domain.com",
-  "username": "example",
-  "domain": "domain.com",
-  "mx_record": "mx.domain.com",
-  "provider": "provider_name",
-  "score": 100,
-  "isv_format": true,
-  "isv_domain": true,
-  "isv_mx": true,
-  "isv_noblock": true,
-  "isv_nocatchall": false,
-  "isv_nogeneric": true,
-  "is_disposable": false,
-  "is_free": true,
-  "result": "deliverable",
-  "reason": "accepted_email"
-}
-```
-
-### For CSV Input (Full Lead List)
-
-When you upload a CSV, the output contains **ALL your original columns PLUS verification results**.
-
-Example: If your CSV has columns `name, company, email, phone`, the output will be:
-
-```
-{
-  "name": "John Doe",
-  "company": "Acme Inc",
-  "email": "john@acme.com",
-  "phone": "+1234567890",
-  "verification_email": "john@acme.com",
-  "verification_username": "john",
-  "verification_domain": "acme.com",
-  "verification_mx_record": "mx.acme.com",
-  "verification_provider": "google",
-  "verification_score": 100,
-  "verification_isv_format": true,
-  "verification_isv_domain": true,
-  "verification_isv_mx": true,
-  "verification_isv_noblock": true,
-  "verification_isv_nocatchall": true,
-  "verification_isv_nogeneric": true,
-  "verification_is_disposable": false,
-  "verification_is_free": false,
-  "verification_result": "deliverable",
-  "verification_reason": "accepted_email"
-}
-```
-
-**Note:** Verification fields are prefixed with `verification_` to avoid conflicts with your original columns.
-
-### Result Values
-
-- `deliverable`: Email is valid and can receive messages
-- `risky`: Email exists but may have issues (catch-all, etc.)
-- `undeliverable`: Email does not exist or cannot receive messages
-- `unknown`: Verification could not be completed
-
-## Usage Examples
-
-### Example 1: Verify Single Email
-
-```
-{
-  "emails": ["test@example.com"]
-}
-```
-
-### Example 2: Verify Multiple Emails
+## Input format
 
 ```
 {
   "emails": [
-    "john@company.com",
-    "jane@company.com",
-    "info@company.com"
-  ]
+    "alex.morozov77@gmail.com",
+    "jennifer.lee@icloud.com",
+    "peter-anderson@hotmail.com"
+  ],
+  "concurrency": 3
 }
 ```
 
-### Example 3: Upload Full Lead List CSV
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `emails` | `string[]` | ✅ | List of email addresses to verify. **Up to 50 per run.** |
+| `concurrency` | `integer` | — | Parallel verifications (1–20, default `5`). Higher = faster, but more likely to hit upstream rate limits. |
 
-Upload your CSV file with any columns you want to preserve:
+---
+
+## Output format
+
+One flat record per email, pushed to the default dataset. Example (JSON):
 
 ```
 {
-  "csvFile": "https://api.apify.com/v2/key-value-stores/xxx/records/leads.csv",
-  "emailColumn": "Contact Email"
+  "address": "james_wilson87@hotmail.com",
+  "status": "valid",
+  "sub_status": "",
+  "reason": "Mailbox exists and accepts mail.",
+  "is_deliverable": true,
+  "is_valid_format": true,
+  "is_free_email": true,
+  "is_business_email": false,
+  "is_role_account": false,
+  "is_disposable": false,
+  "is_catch_all": false,
+  "is_toxic": false,
+  "is_spamtrap": false,
+  "is_abuse": false,
+  "is_global_suppression": false,
+  "is_mailbox_full": false,
+  "is_greylisted": false,
+  "is_alias": false,
+  "is_possible_typo": false,
+  "has_plus_tag": false,
+  "is_gibberish": false,
+  "did_you_mean": null,
+  "normalized_email": "james_wilson87@hotmail.com",
+  "quality_score": 95,
+  "deliverability_score": 95,
+  "risk": "low",
+  "account": "james_wilson87",
+  "domain": "hotmail.com",
+  "domain_age_days": 10983,
+  "smtp_provider": "microsoft",
+  "mx_found": true,
+  "mx_record": "hotmail-com.olc.protection.outlook.com",
+  "mx_records": ["hotmail-com.olc.protection.outlook.com"],
+  "firstname": null,
+  "lastname": null,
+  "gender": null,
+  "country": null,
+  "region": null,
+  "city": null,
+  "zipcode": null,
+  "processed_at": "2026-04-21 18:48:06.886",
+  "verified_at": "2026-04-21 18:48:06.886"
 }
 ```
 
-Your output will contain all original columns (first_name, last_name, company, phone, etc.) plus the verification results!
+### Field reference
 
-## Rate Limits and Timing
+**Status**
 
-The Actor automatically adjusts processing time based on the number of emails:
+| Field | Type | Description |
+| --- | --- | --- |
+| `address` | string | The email that was verified |
+| `status` | string | `valid` / `invalid` / `catch-all` / `unknown` / `spamtrap` / `abuse` / `do_not_mail` |
+| `sub_status` | string | Granular reason code: `mailbox_not_found`, `disposable`, `role_based`, `possible_typo`, `greylisted`, etc. |
+| `reason` | string | Plain-English explanation of the status |
 
-- Up to 250 emails: ~45 seconds
-- 250-500 emails: ~45-55 seconds
-- 500-1000 emails: ~55-100 seconds
-- 1000-5000 emails: ~100-130 seconds
-- 5000+ emails: ~130-180 seconds
+**Derived verdicts** (computed on top of raw status)
 
-## Support
+| Field | Type | Description |
+| --- | --- | --- |
+| `is_deliverable` | boolean | Mailbox accepts mail (`status == valid`) |
+| `is_valid_format` | boolean | Passes RFC-style syntax check |
+| `is_free_email` | boolean | Free provider (Gmail, Yahoo, Outlook, Hotmail, iCloud, mail.ru, …) |
+| `is_business_email` | boolean | Inverse of `is_free_email` |
+| `is_role_account` | boolean | Shared mailbox (`info@`, `support@`, `sales@`, `hr@`, …) |
+| `is_disposable` | boolean | Temporary / throwaway address |
+| `is_catch_all` | boolean | Domain accepts any address — existence can't be confirmed |
+| `is_toxic` | boolean | Known complainer / trap |
+| `is_spamtrap` | boolean | Hard spam trap — never send |
+| `is_abuse` | boolean | Known abuse / complaint address |
+| `is_global_suppression` | boolean | On a global suppression list |
+| `is_mailbox_full` | boolean | Mailbox quota exceeded |
+| `is_greylisted` | boolean | Temporary SMTP reject |
+| `is_alias` | boolean | Alias that forwards elsewhere |
+| `is_possible_typo` | boolean | Looks like a typo — see `did_you_mean` |
+| `has_plus_tag` | boolean | Gmail-style `local+tag@domain` aliasing |
+| `is_gibberish` | boolean | Random-looking local part (e.g. `asdqwer123`) |
 
-For issues or questions, please contact the Actor developer.
+**Scoring**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `quality_score` | integer | 0–100 deliverability score |
+| `deliverability_score` | integer | Alias of `quality_score` |
+| `risk` | string | `low` / `medium` / `high` / `unknown` |
+
+**Metadata & enrichment**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `did_you_mean` | string | Suggested fix if the address looks like a typo |
+| `normalized_email` | string | Canonical form (lowercased; for Gmail: dots stripped, `+tag` removed) |
+| `account` | string | Local part (before `@`) |
+| `domain` | string | Domain part (after `@`) |
+| `domain_age_days` | integer | How old the domain is |
+| `smtp_provider` | string | Detected mail provider (`google`, `microsoft`, `yahoo`, `apple`, …) |
+| `mx_found` | boolean | Domain has MX records |
+| `mx_record` | string | Primary MX host |
+| `mx_records` | string[] | MX hosts as an array (compatibility) |
+| `firstname`, `lastname`, `gender`, `country`, `region`, `city`, `zipcode` | string | Append data when available |
+| `processed_at`, `verified_at` | string | ISO-style timestamp of the check |
+
+### Getting the output
+
+```
+# JSON
+GET https://api.apify.com/v2/acts/<actor-id>/runs/<run-id>/dataset/items?format=json
+
+# CSV — ready for Excel / Google Sheets / CRM import
+GET https://api.apify.com/v2/acts/<actor-id>/runs/<run-id>/dataset/items?format=csv
+```
+
+---
+
+## How it compares
+
+| Feature | This Actor | Typical free validators |
+| --- | --- | --- |
+| Status + sub-status | ✅ | ✅ |
+| Deliverability / quality score (0–100) | ✅ | partial |
+| Risk level (low / medium / high) | ✅ | ⛔ |
+| Disposable / role / catch-all flags | ✅ | ✅ |
+| Gibberish detection (random strings) | ✅ | ⛔ |
+| `+tag` / Gmail alias detection | ✅ | ⛔ |
+| Normalized email (canonical form) | ✅ | ⛔ |
+| Typo detection with suggested fix | ✅ | partial |
+| MX host + provider | ✅ | ✅ |
+| Domain age | ✅ | ⛔ |
+| Append data (first/last name, geo) | ✅ | ⛔ |
+| No API keys from the user | ✅ | ⛔ |
+
+---
+
+## Pricing & limits
+
+- **Up to 50 emails per run** — enforced in the input schema.
+- Default memory: **256 MB** per run.
+- Typical run: 50 emails in ~60–90 seconds at default concurrency.
+- Failed / unverifiable addresses are **skipped** — they are not written to the dataset, so you are never billed for checks that didn't return a verdict.
+
+---
+
+## Best practices
+
+1. **Keep concurrency at 3–5** for the cleanest results. Higher concurrency can trigger upstream rate limits.
+2. **Batch large lists** — call the actor multiple times with 50 addresses each rather than fighting the per-run cap.
+3. **Treat `catch-all` as "probably deliverable but unverified"** — don't drop those leads; flag and re-check later.
+4. **Always drop `spamtrap`, `abuse`, and `is_disposable=true`** — sending to these hurts your sender reputation.
+5. **Use `is_possible_typo` + `did_you_mean`** to auto-suggest corrections at the form level, before verification is even needed.
+
+---
+
+## FAQ
+
+**Q: Can I run this on 10 000 addresses?**
+Split into 200 runs of 50 each, or chain runs via Apify's scheduler / integrations. The per-run cap keeps a single run responsive and avoids partial-failure confusion.
+
+**Q: What happens if an address is ambiguous (catch-all / unknown)?**
+You still get a record with `status=catch-all` or `status=unknown`, a `risk=medium|high`, and a `reason` field explaining why. No silent drops.
+
+**Q: Will it detect invalid Cyrillic / Unicode addresses?**
+Syntax check is RFC-style ASCII; Unicode local parts aren't flagged automatically. For IDN domains the Punycode form works.
+
+**Q: Do you store or share the emails I validate?**
+Emails live only in the run's own Apify dataset, under your account. After the run's retention window, they're deleted. Nothing is sent to third parties beyond what's strictly necessary to perform the verification.
+
+---
+
+## Contact
+
+Questions, feature requests, bulk volume arrangements, custom fields: **[afrcanec@gmail.com](mailto:afrcanec@gmail.com)**
+
+---
+
+**Tags:** email verifier, email validator, email validation, email verification, bulk email checker, bulk email validator, email deliverability, email list cleaner, email list cleaning, email quality score, email risk score, disposable email detector, disposable email checker, catch all detection, catch all email, role account detector, typo correction, mx record lookup, smtp check, email hygiene, lead validation, cold email, bounce rate, sender reputation, mailbox verification, email syntax check, gibberish email detector
